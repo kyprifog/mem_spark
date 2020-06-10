@@ -1,0 +1,22 @@
+#!/bin/bash
+set -e
+if command -v spark >/dev/null 2>&1 ; then
+  if [ -z "$1" ] && [ -z "$2" ]
+  then
+    echo "Usage monitor <<PROCESS_ID>> <<OUTPUT_LOG>>"
+  else
+    while true
+    do
+      echo
+      top -pid $1 -l 1 | tail -1 | awk -F ' ' '{print $8}' | sed 's/.\{1\}$//' >> $2
+      mem="($(cat $2 | tail -1))"
+      out=$(cat $2 | tail -30 | spark)
+      tput cuu1
+      tput civis
+      echo -n $1 $out $mem
+      sleep 0.2
+    done
+  fi
+else
+    echo "spark not found.  install from https://github.com/holman/spark"
+fi
